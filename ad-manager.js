@@ -33,13 +33,13 @@
     ];
 
     // التأخير الأولي قبل بدء أول دورة إعلانية (15 ثانية بناءً على إعدادك الرقمي)
-    const initialDelay = 15000;
+    const initialDelay = 5000;
 
     // الفاصل الزمني بين تحميل كل إعلان داخل الدورة (25 ثانية)
-    const delayBetweenAds = 25000;
+    const delayBetweenAds = 15000;
 
     // الفاصل الزمني بعد انتهاء الدورة وقبل بدء دورة جديدة (50 ثانية)
-    const delayBetweenCycles = 50000;
+    const delayBetweenCycles = 20000;
 
     // --- لا تقم بتعديل أي شيء تحت هذا السطر ---
 
