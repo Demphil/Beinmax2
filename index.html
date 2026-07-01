@@ -2,61 +2,69 @@
 <html>
 <head>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #0c121c; color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #0c121c; color: white; font-family: sans-serif; overflow: hidden; }
         .controls { background: #1a2230; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
-        button { background: #2c3e50; border: none; color: white; padding: 8px 15px; cursor: pointer; border-radius: 3px; }
+        button { background: #2c3e50; border: none; color: white; padding: 8px 15px; cursor: pointer; border-radius: 3px; font-size: 14px; }
+        button:hover { background: #34495e; }
         button.active { background: #c0392b; }
         
-        #player-container { flex-grow: 1; background: black; display: flex; justify-content: center; align-items: center; }
-        video { width: 100%; height: 100%; }
+        /* المشغل يأخذ كل المساحة المتاحة */
+        #player-container { width: 100%; height: calc(100vh - 150px); background: black; display: flex; justify-content: center; align-items: center; }
+        video, iframe { width: 100%; height: 100%; border: none; }
         
-        .ad-container { width: 100%; height: 50px; background: #000; display: flex; justify-content: center; align-items: center; }
+        .footer { padding: 10px; text-align: center; background: #1a2230; font-size: 12px; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
-<div class="controls">
-    <button onclick="loadStream('https://s3.us-east-2.amazonaws.com/cdnr300/live/stream/index.m3u8', this)">بث 1</button>
-    <button onclick="loadStream('https://2.simoplay.com/my-hls/h9asfma10d5.m3u8', this)">بث 3</button>
-    <button onclick="loadStream('https://2.simoplay.com/my-hls/0wo68p0w54v.m3u8', this)">بث 4</button>
-    <button onclick="loadStream('https://sh.kooraa36.cfd/endroom1.m3u8', this)">بث 5</button>
-    <button onclick="loadStream('https://1.simoplay.com/my-hls/b7xk35l5sku.m3u8', this)">بث 6</button>
+<div class="controls" id="btn-group">
+    <button onclick="loadStream(0, 'https://s3.us-east-2.amazonaws.com/cdnr300/live/stream/index.m3u8', false)">بث 1</button>
+    <button onclick="loadStream(1, 'https://4.yalla3arab.com/albaplayer/bein-sports-hd-2/?serv=2&auth=livepass', true)">بث 2</button>
+    <button onclick="loadStream(2, 'https://2.simoplay.com/my-hls/h9asfma10d5.m3u8', false)">بث 3</button>
+    <button onclick="loadStream(3, 'https://2.simoplay.com/my-hls/0wo68p0w54v.m3u8', false)">بث 4</button>
+    <button onclick="loadStream(4, 'https://sh.kooraa36.cfd/endroom1.m3u8', false)">بث 5</button>
+    <button onclick="loadStream(5, 'https://1.simoplay.com/my-hls/b7xk35l5sku.m3u8', false)">بث 6</button>
+    <button onclick="loadStream(6, 'https://withered-mud-4e52.koora-live.workers.dev', true)">بث 7 (Cloudflare)</button>
+    <button onclick="location.reload()">تحديث</button>
 </div>
 
 <div id="player-container">
     <video id="video" controls autoplay muted></video>
 </div>
 
-<div class="ad-container">
-    <script>atOptions = {'key' : '10c5b600c97b594e544f498f9b4770d0', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {}};</script>
-    <script src="https://behavecurlescalator.com/10c5b600c97b594e544f498f9b4770d0/invoke.js"></script>
+<div class="footer">
+    تنبيه: إذا توقف البث قم بالضغط على زر التحديث أو إختار مشغلاً آخر في الأعلى.
 </div>
 
 <script>
-    var video = document.getElementById('video');
+    var container = document.getElementById('player-container');
     var hls = new Hls();
-    // رابط الـ Worker الخاص بك
-    var workerUrl = "https://withered-mud-4e52.koora-live.workers.dev/?url=";
 
-    function loadStream(streamUrl, btn) {
-        document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    function loadStream(index, url, isIframe) {
+        document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('button')[index].classList.add('active');
 
         if (hls) hls.destroy();
 
-        // نقوم بدمج الرابط مع الـ Worker لتنظيفه
-        var finalUrl = workerUrl + encodeURIComponent(streamUrl);
-
-        hls = new Hls();
-        hls.loadSource(finalUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        if (isIframe) {
+            container.innerHTML = `<iframe src="${url}" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+        } else {
+            container.innerHTML = `<video id="video" controls autoplay muted></video>`;
+            var video = document.getElementById('video');
+            hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        }
     }
 
-    // تشغيل البث الأول تلقائياً
-    window.onload = () => loadStream('https://s3.us-east-2.amazonaws.com/cdnr300/live/stream/index.m3u8', document.querySelector('button'));
+    // تشغيل البث الأول تلقائياً عند فتح الصفحة
+    window.onload = function() {
+        loadStream(0, 'https://s3.us-east-2.amazonaws.com/cdnr300/live/stream/index.m3u8', false);
+    };
 </script>
+
 <script src="ad-manager.js"></script>
 </body>
 </html>
